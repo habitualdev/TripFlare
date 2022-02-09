@@ -94,7 +94,7 @@ func IterateDb(db *bolt.DB, bot *slacker.Slacker) error {
 				return nil
 			} else {
 
-				updatedEntry := SearchAll(bot, tempEntry)
+				updatedEntry := SearchAll(tempEntry)
 
 				updatedEntries = append(updatedEntries, updatedEntry)
 
@@ -111,12 +111,12 @@ func IterateDb(db *bolt.DB, bot *slacker.Slacker) error {
 	return nil
 }
 
-func SearchAll(bot *slacker.Slacker, hashEntry structs.HashEntry) structs.HashEntry {
+func SearchAll(hashEntry structs.HashEntry) structs.HashEntry {
 	tempEntry := hashEntry
 
-	tempEntry.Data.VX = SearchVX(tempEntry.Hash)
-	tempEntry.Data.VirusTotal = SearchVirustotal(tempEntry.Hash)
-	tempEntry.Data.MalwareBazaar = SearchMB(tempEntry.Hash)
+	if vxApiCreds != ""{tempEntry.Data.VX = SearchVX(tempEntry.Hash)}
+	if vtApiKey != ""{tempEntry.Data.VirusTotal = SearchVirustotal(tempEntry.Hash)}
+	if mbApiKey != ""{tempEntry.Data.MalwareBazaar = SearchMB(tempEntry.Hash)}
 
 	return tempEntry
 
