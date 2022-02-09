@@ -6,9 +6,6 @@ import (
 	"github.com/slack-go/slack"
 )
 
-var HashChannel = make(chan string, 1024)
-var ResultsChannel = make(chan string, 1024)
-
 func SendUpdate(bot *slacker.Slacker, userID string, entry structs.HashEntry) {
 	if entry.Data.VX {
 		bot.Client().PostMessage(userID, slack.MsgOptionText(entry.Hash+" found on VX", false))
