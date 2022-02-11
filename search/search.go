@@ -17,7 +17,7 @@ import (
 )
 
 func SearchVirustotal(hash string) bool {
-	vtClient := vt.NewClient(vtApiKey)
+	vtClient := vt.NewClient(structs.VtApiKey)
 	file, _ := vtClient.Get(vt.URL("files/%s", hash))
 	if len(file.Data) != 0 {
 		return true
@@ -26,7 +26,7 @@ func SearchVirustotal(hash string) bool {
 }
 
 func SearchVX(hash string) bool {
-	data := vxApiCreds
+	data := structs.VxApiCreds
 	vxToken := structs.VxToken{}
 	cli := http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, "https://virus.exchange/api/auth/login", bytes.NewBuffer([]byte(data)))
@@ -54,13 +54,32 @@ func SearchMB(hash string) bool {
 	cli := http.Client{}
 	req, _ := http.NewRequest(http.MethodPost, "https://mb-api.abuse.ch/api/v1/", bytes.NewBufferString(data.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("API-KEY", mbApiKey)
+	req.Header.Add("API-KEY", structs.MbApiKey)
 	resp, _ := cli.Do(req)
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	if match, _ := regexp.Match("hash_not_found", bodyBytes); match {
 		return false
 	} else {
 		return true
+	}
+}
+
+func SearchHybrid(hash string) bool {
+	data := url.Values{
+		"hash":  {hash},
+	}
+	cli := http.Client{}
+	req, _ := http.NewRequest(http.MethodPost, "https://www.hybrid-analysis.com/api/v2/search/hash", bytes.NewBufferString(data.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("accept", "application/json")
+	req.Header.Add("User-Agent", "Falcon Sandbox")
+	req.Header.Add("api-key", structs.HybridApiKey)
+	resp, _ := cli.Do(req)
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	if len(bodyBytes) > 2{
+		return true
+	} else {
+		return false
 	}
 }
 
@@ -74,7 +93,7 @@ func IterateDb(db *bolt.DB, bot *slacker.Slacker) error {
 			tempData := structs.EntryData{}
 			json.Unmarshal(v, &tempData)
 			tempEntry := structs.HashEntry{Hash: string(k), Data: tempData}
-			if tempEntry.Data.VX || tempEntry.Data.VirusTotal || tempEntry.Data.MalwareBazaar {
+			if tempEntry.Data.VX || tempEntry.Data.VirusTotal || tempEntry.Data.MalwareBazaar || tempEntry.Data.HybridAnalysis {
 				return nil
 			} else {
 				updatedEntry := SearchAll(tempEntry)
@@ -93,14 +112,17 @@ func IterateDb(db *bolt.DB, bot *slacker.Slacker) error {
 
 func SearchAll(hashEntry structs.HashEntry) structs.HashEntry {
 	tempEntry := hashEntry
-	if vxApiCreds != "" {
+	if structs.VxApiCreds != "" {
 		tempEntry.Data.VX = SearchVX(tempEntry.Hash)
 	}
-	if vtApiKey != "" {
+	if structs.VtApiKey != "" {
 		tempEntry.Data.VirusTotal = SearchVirustotal(tempEntry.Hash)
 	}
-	if mbApiKey != "" {
+	if structs.MbApiKey != "" {
 		tempEntry.Data.MalwareBazaar = SearchMB(tempEntry.Hash)
+	}
+	if structs.HybridApiKey != "" {
+		tempEntry.Data.HybridAnalysis = SearchHybrid(tempEntry.Hash)
 	}
 	return tempEntry
 }
@@ -109,6 +131,6 @@ func SearchLoop(bot *slacker.Slacker, db *bolt.DB) {
 	time.Sleep(1 * time.Second)
 	for true {
 		IterateDb(db, bot)
-		time.Sleep(2 * time.Minute)
+		time.Sleep(5 * time.Minute)
 	}
 }

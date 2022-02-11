@@ -16,4 +16,7 @@ func SendUpdate(bot *slacker.Slacker, userID string, entry structs.HashEntry) {
 	if entry.Data.MalwareBazaar {
 		bot.Client().PostMessage(userID, slack.MsgOptionText(entry.Hash+" found on MalwareBazaar", false))
 	}
+	if entry.Data.HybridAnalysis{
+		bot.Client().PostMessage(userID, slack.MsgOptionText(entry.Hash+" found on HybridAnalysis", false))
+	}
 }
