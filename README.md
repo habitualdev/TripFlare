@@ -29,14 +29,14 @@ _metadata:
   major_version: 1
   minor_version: 1
 display_information:
-  name: Slacker App
+  name: TripFlare
 features:
   app_home:
     home_tab_enabled: false
     messages_tab_enabled: true
     messages_tab_read_only_enabled: true
   bot_user:
-    display_name: Slacker App
+    display_name: TripFlare
     always_online: false
 oauth_config:
   scopes:
