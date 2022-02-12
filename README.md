@@ -2,7 +2,7 @@
 
 **Slackbot for monitoring external malware databases for uploads of novel malware.**
 
-*Usage: AddHash <hash>*
+*Usage: AddHash \<hash\>*
 
 Proper functionality requires at least:
  - Slack Bot and App token
